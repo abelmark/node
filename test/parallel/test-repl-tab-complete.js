@@ -22,6 +22,11 @@
 'use strict';
 
 const common = require('../common');
+const ArrayStream = require('../common/arraystream');
+const {
+  hijackStderr,
+  restoreStderr
+} = require('../common/hijackstdio');
 const assert = require('assert');
 const fixtures = require('../common/fixtures');
 const hasInspector = process.config.variables.v8_enable_inspector === 1;
@@ -44,7 +49,7 @@ function getNoResultsFunction() {
 }
 
 const works = [['inner.one'], 'inner.o'];
-const putIn = new common.ArrayStream();
+const putIn = new ArrayStream();
 const testMe = repl.start('', putIn);
 
 // Some errors are passed to the domain, but do not callback
@@ -422,9 +427,9 @@ testMe.complete('obj.', common.mustCall((error, data) => {
     putIn.run([`var ele = new ${type.name}(1e6 + 1); ele.biu = 1;`]);
   }
 
-  common.hijackStderr(common.mustNotCall());
+  hijackStderr(common.mustNotCall());
   testMe.complete('ele.', common.mustCall((err, data) => {
-    common.restoreStderr();
+    restoreStderr();
     assert.ifError(err);
 
     const ele = (type === Array) ?
@@ -525,7 +530,7 @@ testCustomCompleterAsyncMode.complete('a', common.mustCall((error, data) => {
 }));
 
 // tab completion in editor mode
-const editorStream = new common.ArrayStream();
+const editorStream = new ArrayStream();
 const editor = repl.start({
   stream: editorStream,
   terminal: true,
@@ -548,7 +553,7 @@ editor.completer('var log = console.l', common.mustCall((error, data) => {
 
 {
   // tab completion of lexically scoped variables
-  const stream = new common.ArrayStream();
+  const stream = new ArrayStream();
   const testRepl = repl.start({ stream });
 
   stream.run([`
